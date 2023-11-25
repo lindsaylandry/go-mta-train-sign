@@ -3,6 +3,7 @@ package traininfo
 import (
 	"github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs"
 	"fmt"
+	"time"
 
 	"github.com/lindsaylandry/go-mta-train-sign/src/decoder"
 )
@@ -58,6 +59,29 @@ func (t *TrainInfo) GetVehicleStopInfo() (error) {
 				msg = fmt.Sprintf("Label: %s %s", *desc.Label, msg)
 			}
 			fmt.Printf("%s\n", msg)
+		}
+	}
+	return nil
+}
+
+func (t *TrainInfo) GetTripUpdateInfo(stopId string) (error) {
+	now := time.Now()
+	for _, entity := range t.Feed.Entity {
+		trip := entity.GetTripUpdate()
+		if trip != nil {
+			stopTimes := trip.StopTimeUpdate
+			for _, time := range stopTimes {
+				if *time.StopId == stopId {
+					route := ""
+					vehicle := trip.Trip
+					if vehicle != nil {
+						route = *vehicle.RouteId
+					}
+					secs := *time.Arrival.Time - now.Unix()
+					mins := secs/60
+					fmt.Printf("%s %s %d mins\n", route, *time.StopId, mins)
+				}
+			}
 		}
   }
 

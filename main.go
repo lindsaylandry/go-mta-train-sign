@@ -7,16 +7,22 @@ import (
 )
 
 func main() {
-	train := flag.String("t", "Q", "train to parse")
+	stop := flag.String("s", "D30N", "stop to parse")
 	key := flag.String("k", "foobar", "access key")
+	
 	flag.Parse()
 		
-	t, err := traininfo.NewTrainInfo(*train, *key)
+	t, err := traininfo.NewTrainInfo(*stop, *key)
 	if err != nil {
 		panic(err)
 	}
 
-	err = t.GetVehicleStopInfo()
+	//err = t.GetVehicleStopInfo()
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	err = t.GetTripUpdateInfo(*stop)
 	if err != nil {
 		panic(err)
 	}
