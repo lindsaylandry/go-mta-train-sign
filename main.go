@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"time"
 	"fmt"
+	"time"
 
 	"github.com/lindsaylandry/go-mta-train-sign/src/traininfo"
 	"github.com/lindsaylandry/go-mta-train-sign/src/stations"
@@ -33,7 +33,7 @@ func main() {
 		if !*cont {
 			break
 		}
-		
+
 		fmt.Println()
 		time.Sleep(5 * time.Second)
 	}
