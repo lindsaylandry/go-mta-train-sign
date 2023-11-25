@@ -3,26 +3,36 @@ package traininfo
 import (
 	"github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/lindsaylandry/go-mta-train-sign/src/decoder"
 )
 
 type TrainInfo struct {
-	Train string
+	Stop string
 	Key string
 
 	Feed gtfs.FeedMessage
+
+	Arrivals []Arrival
 }
 
-func NewTrainInfo(train, accessKey string) (*TrainInfo, error) {
+type Arrival struct {
+	train string
+	mins int64
+}
+
+func NewTrainInfo(stop, accessKey string) (*TrainInfo, error) {
 	t := TrainInfo{}
 
 	t.Key = accessKey
-	t.Train = train
+	t.Stop = stop
 
 	feed, err := decoder.Decode(accessKey)
 	t.Feed = feed
+
+	t.GetArrivals()
 
 	return &t, err
 }
@@ -64,14 +74,14 @@ func (t *TrainInfo) GetVehicleStopInfo() (error) {
 	return nil
 }
 
-func (t *TrainInfo) GetTripUpdateInfo(stopId string) (error) {
+func (t *TrainInfo) GetArrivals() () {
 	now := time.Now()
 	for _, entity := range t.Feed.Entity {
 		trip := entity.GetTripUpdate()
 		if trip != nil {
 			stopTimes := trip.StopTimeUpdate
 			for _, time := range stopTimes {
-				if *time.StopId == stopId {
+				if *time.StopId == t.Stop {
 					route := ""
 					vehicle := trip.Trip
 					if vehicle != nil {
@@ -79,11 +89,24 @@ func (t *TrainInfo) GetTripUpdateInfo(stopId string) (error) {
 					}
 					secs := *time.Arrival.Time - now.Unix()
 					mins := secs/60
-					fmt.Printf("%s %s %d mins\n", route, *time.StopId, mins)
+
+					a := Arrival{}
+					a.train = route
+					a.mins = mins
+
+					t.Arrivals = append(t.Arrivals, a)
 				}
 			}
 		}
   }
 
-	return nil
+	// TODO: sort arrivals by mins
+	sort.Slice(t.Arrivals, func(i, j int) bool { return t.Arrivals[i].mins < t.Arrivals[j].mins })
+}
+
+func (t *TrainInfo) PrintArrivals() {
+	fmt.Printf("STOP %s\n", t.Stop)
+	for _, a := range t.Arrivals {
+		fmt.Printf("%s %d mins\n", a.train, a.mins)
+	}
 }
