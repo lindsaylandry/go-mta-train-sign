@@ -25,7 +25,7 @@ type Arrival struct {
   Mins int64
 }
 
-func NewTrainInfo(station stations.MtaStation, accessKey, direction string) (*TrainInfo, error) {
+func NewTrainInfo(station stations.MtaStation, accessKey, direction, url string) (*TrainInfo, error) {
 	t := TrainInfo{}
 
 	t.Key = accessKey
@@ -33,7 +33,7 @@ func NewTrainInfo(station stations.MtaStation, accessKey, direction string) (*Tr
 
 	t.Station = station
 
-	feed, err := decoder.Decode(accessKey)
+	feed, err := decoder.Decode(accessKey, url)
 	t.Feed = feed
 
 	t.GetArrivals()

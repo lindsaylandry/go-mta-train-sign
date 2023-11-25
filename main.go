@@ -7,6 +7,7 @@ import (
 
 	"github.com/lindsaylandry/go-mta-train-sign/src/traininfo"
 	"github.com/lindsaylandry/go-mta-train-sign/src/stations"
+	"github.com/lindsaylandry/go-mta-train-sign/src/decoder"
 )
 
 func main() {
@@ -22,8 +23,11 @@ func main() {
 		panic(err)
 	}
 
+	// Get subway feeds from station trains
+	feeds := decoder.GetMtaFeeds(station.DaytimeRoutes)
+
 	for {
-		t, err := traininfo.NewTrainInfo(station, *key, *direction)
+		t, err := traininfo.NewTrainInfo(station, *key, *direction, (*feeds)[0].URL)
 		if err != nil {
 			panic(err)
 		}

@@ -8,13 +8,13 @@ import (
   "errors"
 )
 
-func Decode(k string) (gtfs.FeedMessage, error) {
+func Decode(k, url string) (gtfs.FeedMessage, error) {
 	client := &http.Client{}
 	feed := gtfs.FeedMessage{}
 
 	// TODO: get URL from train line
 
-  req, err := http.NewRequest("GET", "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw", nil)
+  req, err := http.NewRequest("GET", url, nil)
   req.Header.Add("x-api-key", k)
   resp, err := client.Do(req)
   defer resp.Body.Close()
