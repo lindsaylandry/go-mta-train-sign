@@ -34,9 +34,6 @@ func readStations(filepath string) ([]MtaStation, error) {
 	if err := gocsv.UnmarshalFile(f, &stations); err != nil {
     return stations, err
   }
-  for _, s := range stations {
-    fmt.Println("Station ", s.StopName)
-  }
 
 	return stations, nil
 }

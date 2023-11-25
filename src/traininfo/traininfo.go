@@ -21,8 +21,8 @@ type TrainInfo struct {
 }
 
 type Arrival struct {
-  train string
-  mins int64
+  Train string
+  Mins int64
 }
 
 func NewTrainInfo(station stations.MtaStation, accessKey, direction string) (*TrainInfo, error) {
@@ -79,24 +79,25 @@ func (t *TrainInfo) GetVehicleStopInfo() (error) {
 }
 
 func (t *TrainInfo) GetArrivals() () {
+	stopID := t.Station.GTFSStopID + t.Direction
 	now := time.Now()
 	for _, entity := range t.Feed.Entity {
 		trip := entity.GetTripUpdate()
 		if trip != nil {
 			stopTimes := trip.StopTimeUpdate
-			for _, time := range stopTimes {
-				if *time.StopId == t.Stop {
+			for _, s := range stopTimes {
+				if *s.StopId == stopID {
 					route := ""
 					vehicle := trip.Trip
 					if vehicle != nil {
 						route = *vehicle.RouteId
 					}
-					secs := *time.Arrival.Time - now.Unix()
+					secs := *s.Arrival.Time - now.Unix()
 					mins := secs/60
 
 					a := Arrival{}
-					a.train = route
-					a.mins = mins
+					a.Train = route
+					a.Mins = mins
 
 					t.Arrivals = append(t.Arrivals, a)
 				}
@@ -105,12 +106,12 @@ func (t *TrainInfo) GetArrivals() () {
   }
 
 	// TODO: sort arrivals by mins
-	sort.Slice(t.Arrivals, func(i, j int) bool { return t.Arrivals[i].mins < t.Arrivals[j].mins })
+	sort.Slice(t.Arrivals, func(i, j int) bool { return t.Arrivals[i].Mins < t.Arrivals[j].Mins })
 }
 
 func (t *TrainInfo) PrintArrivals() {
-	fmt.Printf("STOP %s\n", t.Stop)
+	fmt.Printf("STATION %s\n", t.Station.StopName)
 	for _, a := range t.Arrivals {
-		fmt.Printf("%s %d mins\n", a.train, a.mins)
+		fmt.Printf("%s %d mins\n", a.Train, a.Mins)
 	}
 }
