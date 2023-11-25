@@ -1,17 +1,17 @@
 package traininfo
 
 import (
-	"google.golang.org/protobuf/proto"
 	"github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs"
-	"net/http"
-	"io/ioutil"
 	"fmt"
-	"errors"
+
+	"github.com/lindsaylandry/go-mta-train-sign/src/decoder"
 )
 
 type TrainInfo struct {
 	Train string
 	Key string
+
+	Feed gtfs.FeedMessage
 }
 
 func NewTrainInfo(train, accessKey string) (*TrainInfo, error) {
@@ -20,41 +20,44 @@ func NewTrainInfo(train, accessKey string) (*TrainInfo, error) {
 	t.Key = accessKey
 	t.Train = train
 
-	return &t, nil
+	feed, err := decoder.Decode(accessKey)
+	t.Feed = feed
+
+	return &t, err
 }
 
-func (t *TrainInfo) Decode() (error) {
-	client := &http.Client{}
-  req, err := http.NewRequest("GET", "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw", nil)
-  req.Header.Add("x-api-key", t.Key)
-  resp, err := client.Do(req)
-  defer resp.Body.Close()
-  if err != nil {
-    return err
-  }
-
-	// read response code
-	// TODO: make more robust
-	if resp.StatusCode == 401 {
-		return errors.New("Unauthorized")
-	}
-
-  body, err := ioutil.ReadAll(resp.Body)
-  if err != nil {
-    return err
-  }
-
-  feed := gtfs.FeedMessage{}
-  err = proto.Unmarshal(body, &feed)
-  if err != nil {
-    return err
-  }
-
-	for _, entity := range feed.Entity {
+func (t *TrainInfo) GetVehicleStopInfo() (error) {
+	for _, entity := range t.Feed.Entity {
 		vehicle := entity.GetVehicle()
 		if vehicle != nil {
 			stopId := vehicle.StopId
-			fmt.Printf("Stop ID: %s\n", *stopId)
+			msg := fmt.Sprintf("Stop ID: %s", *stopId)
+			status := vehicle.CurrentStatus
+			if status != nil {
+				msg = fmt.Sprintf("%s %s", msg, *status)
+			}	else {
+				currentStatus := vehicle.CurrentStatus
+				if currentStatus == nil {
+					msg = fmt.Sprintf("%s IN_TRANSIT_TO", msg)
+				} else {
+					switch *currentStatus {
+					case gtfs.VehiclePosition_INCOMING_AT:
+						msg = fmt.Sprintf("%s INCOMING_AT", msg)
+					case gtfs.VehiclePosition_STOPPED_AT:
+						msg = fmt.Sprintf("%s STOPPED_AT", msg)
+					case gtfs.VehiclePosition_IN_TRANSIT_TO:
+						msg = fmt.Sprintf("%s IN_TRANSIT_TO", msg)
+					// If current_status is missing IN_TRANSIT_TO is assumed.
+					default:
+						msg = fmt.Sprintf("%s IN_TRANSIT_TO", msg)
+					}
+				}
+			}
+			desc := vehicle.Vehicle
+			if desc != nil {
+				msg = fmt.Sprintf("Label: %s %s", *desc.Label, msg)
+			}
+			fmt.Printf("%s\n", msg)
 		}
   }
 

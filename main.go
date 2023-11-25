@@ -16,7 +16,7 @@ func main() {
 		panic(err)
 	}
 
-	err = t.Decode()
+	err = t.GetVehicleStopInfo()
 	if err != nil {
 		panic(err)
 	}
