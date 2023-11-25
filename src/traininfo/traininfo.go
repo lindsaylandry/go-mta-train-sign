@@ -6,20 +6,24 @@ import (
 	"time"
 
 	"github.com/lindsaylandry/go-mta-train-sign/src/decoder"
+	"github.com/lindsaylandry/go-mta-train-sign/src/stations"
 )
 
 type TrainInfo struct {
-	Train string
+	Station stations.MtaStation
 	Key string
+	Direction string
 
 	Feed gtfs.FeedMessage
 }
 
-func NewTrainInfo(train, accessKey string) (*TrainInfo, error) {
+func NewTrainInfo(station stations.MtaStation, accessKey, direction string) (*TrainInfo, error) {
 	t := TrainInfo{}
 
 	t.Key = accessKey
-	t.Train = train
+	t.Direction = direction
+
+	t.Station = station
 
 	feed, err := decoder.Decode(accessKey)
 	t.Feed = feed
