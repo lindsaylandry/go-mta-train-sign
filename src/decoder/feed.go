@@ -1,6 +1,6 @@
 package decoder
 
 type Feed struct {
-	URL string
+	URL    string
 	Trains []string
 }

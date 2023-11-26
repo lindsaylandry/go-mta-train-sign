@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-func GetAllMtaFeeds() (*[]Feed) {
+func GetAllMtaFeeds() *[]Feed {
 	f := []Feed{
 		{URL: "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace", Trains: []string{"A", "C", "E"}},
 		{URL: "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g", Trains: []string{"G"}},
@@ -19,7 +19,7 @@ func GetAllMtaFeeds() (*[]Feed) {
 	return &f
 }
 
-func GetMtaFeeds(trains string) (*[]Feed) {
+func GetMtaFeeds(trains string) *[]Feed {
 	f := GetAllMtaFeeds()
 	fd := []Feed{}
 
@@ -30,12 +30,20 @@ func GetMtaFeeds(trains string) (*[]Feed) {
 		for _, t := range u.Trains {
 			for _, tt := range trns {
 				if tt == t {
-					fd = append(fd, u)
-					break
+					found := false
+					for _, dd := range fd {
+						if dd.URL == u.URL {
+							found = true
+						}
+					}
+					if !found {
+						fd = append(fd, u)
+						break
+					}
 				}
 			}
 		}
 	}
 
-	return &fd 
+	return &fd
 }

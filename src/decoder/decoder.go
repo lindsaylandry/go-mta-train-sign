@@ -1,11 +1,11 @@
 package decoder
 
 import (
-	"google.golang.org/protobuf/proto"
+	"errors"
 	"github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs"
+	"google.golang.org/protobuf/proto"
+	"io/ioutil"
 	"net/http"
-  "io/ioutil"
-  "errors"
 )
 
 func Decode(k, url string) (gtfs.FeedMessage, error) {
@@ -14,25 +14,25 @@ func Decode(k, url string) (gtfs.FeedMessage, error) {
 
 	// TODO: get URL from train line
 
-  req, err := http.NewRequest("GET", url, nil)
-  req.Header.Add("x-api-key", k)
-  resp, err := client.Do(req)
-  defer resp.Body.Close()
-  if err != nil {
-    return feed, err
-  }
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Add("x-api-key", k)
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	if err != nil {
+		return feed, err
+	}
 
-  // read response code
-  // TODO: make more robust
-  if resp.StatusCode >= 400 {
-    return feed, errors.New(http.StatusText(resp.StatusCode))
-  }
+	// read response code
+	// TODO: make more robust
+	if resp.StatusCode >= 400 {
+		return feed, errors.New(http.StatusText(resp.StatusCode))
+	}
 
-  body, err := ioutil.ReadAll(resp.Body)
-  if err != nil {
-    return feed, err
-  }
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return feed, err
+	}
 
-  err = proto.Unmarshal(body, &feed)
-  return feed, err
+	err = proto.Unmarshal(body, &feed)
+	return feed, err
 }
