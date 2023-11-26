@@ -20,7 +20,7 @@ type TrainFeed struct {
 
 type Arrival struct {
 	Train string
-	Mins  int64
+	Secs int64
 }
 
 func NewTrainFeed(station stations.MtaStation, accessKey, direction, url string) (*TrainFeed, error) {
@@ -52,12 +52,16 @@ func (t *TrainFeed) GetArrivals() []Arrival {
 					if vehicle != nil {
 						route = *vehicle.RouteId
 					}
-					secs := *s.Arrival.Time - now.Unix()
-					mins := secs / 60
+					delay := int32(0)
+					if s.Arrival.Delay != nil {
+						delay = *s.Arrival.Delay
+					}
+
+					secs := *s.Arrival.Time + int64(delay) - now.Unix()
 
 					a := Arrival{}
 					a.Train = route
-					a.Mins = mins
+					a.Secs = secs
 
 					arrivals = append(arrivals, a)
 				}
@@ -76,9 +80,13 @@ func PrintArrivals(arrivals []Arrival, name string) {
 		return
 	}
 
-	sort.Slice(arrivals, func(i, j int) bool { return arrivals[i].Mins < arrivals[j].Mins })
+	sort.Slice(arrivals, func(i, j int) bool { return arrivals[i].Secs < arrivals[j].Secs })
 	for _, a := range arrivals {
-		fmt.Printf("%s %d mins\n", a.Train, a.Mins)
+		if a.Secs < 15 {
+			fmt.Printf("%s now\n", a.Train)
+		} else {
+			fmt.Printf("%s %d mins\n", a.Train, a.Secs / 60)
+		}
 	}
 	fmt.Println()
 }
